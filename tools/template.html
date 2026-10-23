@@ -118,16 +118,23 @@ button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outli
 .fmt{font-size:14px;color:var(--muted);background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 16px;margin-top:10px}
 .fmt pre{font-family:var(--sans);white-space:pre-wrap;margin:8px 0 0;color:var(--ink);font-size:14px;line-height:1.7}
 .danger{background:none;border:0;color:var(--bad);text-decoration:underline;padding:0;font-size:13px}
+.fig{display:block;max-width:min(100%,360px);margin:0 auto 18px;background:#fff;border-radius:10px;padding:8px}
+mjx-container{display:inline-block;max-width:100%;overflow-x:auto;overflow-y:hidden;vertical-align:middle}
+.exp{margin-top:10px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 16px;font-size:calc(var(--fs) - 2px);line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.exp b{display:block;font-size:13px;letter-spacing:.12em;color:var(--accent);margin-bottom:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}.opt:active,.round:active{transform:none}}
 </style>
 
 <div class="wrap" id="app"></div>
 <script id="data" type="application/json">__DATA__</script>
+<script id="data-phys" type="application/json">__PHYS__</script>
+<script id="data-math" type="application/json">__MATH__</script>
 <script>
 __PARSER__
 </script>
 <script>
 const BUILTIN=(()=>{const d=JSON.parse(document.getElementById('data').textContent);return {id:'builtin',name:'國文選擇題 3000 題',source:'朱源葆博士彙編',...d}})();
+const BUILTINS=[BUILTIN,...['data-phys','data-math'].map(id=>JSON.parse(document.getElementById(id).textContent))];
 const BKEY='quiz-banks-v1', SKEY='quiz-state-v2';
 let banks=[];
 try{banks=JSON.parse(localStorage.getItem(BKEY)||'[]')}catch(e){}
@@ -137,7 +144,7 @@ try{const old=JSON.parse(localStorage.getItem('zh-quiz-v1')||'null');
   if(old&&!store.banks.builtin){store.banks.builtin={wrong:old.wrong||{},done:old.done||{}};['fs','mode','size'].forEach(k=>{if(old[k]!=null)store[k]=old[k]})}}catch(e){}
 function save(){try{localStorage.setItem(SKEY,JSON.stringify(store))}catch(e){}}
 function saveBanks(){try{localStorage.setItem(BKEY,JSON.stringify(banks));return true}catch(e){return false}}
-const allBanks=()=>[BUILTIN,...banks];
+const allBanks=()=>[...BUILTINS,...banks];
 let B; // current bank
 function useBank(id){
   B=allBanks().find(b=>b.id===id)||BUILTIN; store.cur=B.id;
@@ -155,6 +162,16 @@ const L='ABCD';
 let S=null;
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
 function clearFoot(){document.getElementById('foot')?.remove()}
+// 數學題用 MathJax 排版（只在需要時載入）
+let mathReady=null;
+function typeset(){
+  if(!B.math) return;
+  if(!mathReady){
+    window.MathJax={tex:{inlineMath:[['\\(','\\)']]},svg:{fontCache:'global'},startup:{typeset:false}};
+    mathReady=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js';s.onload=()=>MathJax.startup.promise.then(ok);s.onerror=no;document.head.appendChild(s)});
+  }
+  mathReady.then(()=>MathJax.typesetPromise([app])).catch(()=>{});
+}
 
 function home(){
   S=null; window.scrollTo(0,0); clearFoot();
@@ -190,7 +207,7 @@ function home(){
   <div class="section-label">字體大小</div>
   <div class="seg" id="fs">${[[16,'小'],[18,'中'],[21,'大'],[24,'特大']].map(([v,l])=>`<button class="chip" data-v="${v}" aria-pressed="${store.fs===v}">${l}</button>`).join('')}</div>
   <p class="note">${noAns?`有 ${noAns} 題原檔沒有附答案，作答時會標示「原檔未附答案」，不計入分數。`:''}題目由檔案自動整理，作答紀錄和匯入的題庫只存在這台裝置的瀏覽器裡。
-  <br><button class="linkbtn" id="reset">清除這個題庫的作答紀錄</button>${B.id!=='builtin'?`　<button class="danger" id="del">刪除這個題庫</button>`:''}</p>`;
+  <br><button class="linkbtn" id="reset">清除這個題庫的作答紀錄</button>${!BUILTINS.includes(B)?`　<button class="danger" id="del">刪除這個題庫</button>`:''}</p>`;
   app.innerHTML=html;
   app.querySelectorAll('[data-bank]').forEach(b=>b.onclick=()=>{useBank(b.dataset.bank);home()});
   app.querySelector('[data-bank][aria-pressed="true"]')?.scrollIntoView({inline:'nearest',block:'nearest'});
@@ -231,7 +248,7 @@ function renderQ(){
     <div class="prog"><div class="bar"><i style="width:${S.i/S.list.length*100}%"></i></div>
     <small><span>${esc(S.label)}　第 ${S.i+1} / ${S.list.length} 題</span><span>答對 ${right} / ${scored.length}</span></small></div></div>`;
   if(q.p!=null) h+=`<details class="passage" open><summary>閱讀文章</summary><div>${esc(B.passages[q.p])}</div></details>`;
-  h+=`<div class="qmeta">${B.sections.length>1?esc(B.sections[q.s])+'・':''}第 ${q.n} 題</div><p class="stem">${esc(q.q)}</p><div class="opts">`;
+  h+=`<div class="qmeta">${B.sections.length>1?esc(B.sections[q.s])+'・':''}第 ${q.n} 題</div><p class="stem">${esc(q.q)}</p>${q.img?`<img class="fig" src="${q.img}" alt="題目附圖">`:''}<div class="opts">`;
   q.o.forEach((o,k)=>{h+=`<button class="opt" data-k="${k}"><span class="k">${L[k]}</span><span class="t">${esc(o||'（原檔此選項空白）')}</span></button>`});
   h+=`</div><div id="fb"></div>`;
   app.innerHTML=h;
@@ -242,6 +259,7 @@ function renderQ(){
   f.innerHTML=`<div class="in"><button class="secondary" id="skip">跳過</button><button class="primary" id="next" disabled>請點選答案</button></div>`;
   document.getElementById('skip').onclick=next;
   document.getElementById('next').onclick=next;
+  typeset();
 }
 
 function pick(k){
@@ -262,9 +280,11 @@ function pick(k){
   const ansTxt=scored?q.a.map(i=>L[i]).join('、'):'';
   fb.innerHTML=!scored?`<div class="fb na">原檔未附這題的答案，這題不計分。</div>`
     : ok?`<div class="fb ok">答對了！正確答案是 ${ansTxt}</div>`:`<div class="fb bad">答錯了，正確答案是 ${ansTxt}</div>`;
+  if(q.e) fb.innerHTML+=`<div class="exp"><b>解析</b>${esc(q.e)}</div>`;
   const nb=document.getElementById('next');
   nb.disabled=false; nb.textContent=S.i+1<S.list.length?'下一題 →':'看成績';
   document.getElementById('skip').hidden=true;
+  typeset();
   fb.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 function next(){ S.i++; if(S.i<S.list.length) renderQ(); else result(); }
@@ -281,7 +301,7 @@ function result(){
   <div class="section-label">答錯的題目</div><div class="review">`;
   if(!wrong.length) h+=`<div class="empty">這次全部答對，太厲害了！</div>`;
   wrong.forEach(({a,q})=>{h+=`<div class="rv"><p>${B.sections.length>1?esc(B.sections[q.s])+' ':''}${q.n}. ${esc(q.q)}</p>
-    <div class="a">你選 <span class="y">${L[a.k]}　${esc(q.o[a.k])}</span><br>正解 <span class="c">${q.a.map(i=>L[i]+'　'+esc(q.o[i])).join('<br>')}</span></div></div>`});
+    <div class="a">你選 <span class="y">${L[a.k]}　${esc(q.o[a.k])}</span><br>正解 <span class="c">${q.a.map(i=>L[i]+'　'+esc(q.o[i])).join('<br>')}</span></div>${q.e?`<div class="exp"><b>解析</b>${esc(q.e)}</div>`:''}</div>`});
   h+=`</div>`;
   app.innerHTML=h;
   document.getElementById('back').onclick=home;
@@ -291,6 +311,7 @@ function result(){
   document.getElementById('home2').onclick=home;
   const redo=document.getElementById('redo'); if(redo) redo.onclick=()=>{S={label:'錯題重做',list:wrong.map(x=>x.q),i:0,ans:[]};renderQ()};
   const again=document.getElementById('again'); if(again) again.onclick=home;
+  typeset();
 }
 
 /* ---------- 匯入測驗卷 ---------- */
@@ -384,7 +405,7 @@ function importView(){
     if(!r.questions.length){status('err','找不到任何題目。請確認每題有題號，選項用 (A)(B)(C)(D) 標示，可以展開下方說明看範例。');return}
     IMP.result=r;
     const withA=r.questions.filter(hasAns).length;
-    status(withA?'ok':'info',`整理出 ${r.questions.length} 題${r.sections.length>1?`（${r.sections.length} 部分）`:''}，其中 ${withA} 題有答案${r.passages.length?`，${r.passages.length} 篇閱讀文章`:''}。${withA<r.questions.length?`沒有答案的 ${r.questions.length-withA} 題可以作答但不計分。`:''}${r.fails.length?`另有 ${r.fails.length} 題找不到四個選項，已略過。`:''}`);
+    status(withA?'ok':'info',`整理出 ${r.questions.length} 題${r.sections.length>1?`（${r.sections.length} 部分）`:''}，其中 ${withA} 題有答案${r.passages.length?`，${r.passages.length} 篇閱讀文章`:''}。${withA<r.questions.length?`沒有答案的 ${r.questions.length-withA} 題可以作答但不計分。`:''}${r.fails.length?`另有 ${r.fails.length} 段有題號但不是四選一的選擇題（例如講義內文、計算例題），已略過。`:''}${r.questions.some(q=>q.e)?'有附解析的題目，答完會顯示解析。':''}`);
     const sample=r.questions.slice(0,3).map(q=>`<div class="prev"><p>${q.n}. ${esc(q.q)}</p><ol>${q.o.map((o,i)=>`<li class="${q.a.includes(i)?'c':''}">${L[i]}　${esc(o)}</li>`).join('')}</ol></div>`).join('');
     const fails=r.fails.length?`<div class="section-label">略過的題目（前 5 題）</div>`+r.fails.slice(0,5).map(f=>`<div class="prev"><ol><li>${esc(f.sec)} 第 ${f.n} 題：${esc(f.text)}…</li></ol></div>`).join(''):'';
     document.getElementById('impPrev').innerHTML=`<div class="section-label">前幾題預覽</div><div class="review">${sample}</div>${fails}`;
@@ -393,7 +414,7 @@ function importView(){
   function saveImport(){
     const r=IMP.result;
     const name=nameIn.value.trim()||`我的題庫 ${banks.length+1}`;
-    const bank={id:'b'+Date.now().toString(36),name,source:'自行匯入',sections:r.sections,passages:r.passages,questions:r.questions.map(({s,n,q,o,a,p})=>p!=null?{s,n,q,o,a,p}:{s,n,q,o,a})};
+    const bank={id:'b'+Date.now().toString(36),name,source:'自行匯入',sections:r.sections,passages:r.passages,questions:r.questions.map(({s,n,q,o,a,p,e})=>Object.assign({s,n,q,o,a},p!=null?{p}:{},e?{e}:{}))};
     banks.push(bank);
     if(!saveBanks()){banks.pop();status('err','這台裝置的瀏覽器儲存空間不夠，請先刪除用不到的題庫再試一次。');return}
     useBank(bank.id); home();

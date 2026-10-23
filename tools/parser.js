@@ -10,8 +10,11 @@ function parseQuiz(src){
       if(r>0.35) l=l.replace(/(?<=[^\x00-\x7f]) +(?=[\x00-\x7f])|(?<=[\x00-\x7f]) +(?=[^\x00-\x7f])/g,'');}
     return l.replace(/(?<=[^\x00-\x7f]) (?=[^\x00-\x7f])/g,'');
   };
-  const lines=src.replace(/\r/g,'').split('\n').map(norm);
-  const QA=/^\s*\(\s*([A-Da-d1-4#](?:[.,、 ]*[A-Da-d])*)\s*\)\s*\.?\s*(\d[\d ]{0,4}?)\s*[.、]\s*/;
+  let lines=src.replace(/\r/g,'').split('\n').map(norm);
+  // 去掉每頁重複的頁首頁尾與頁碼
+  const freq={};lines.forEach(l=>{const k=l.trim();if(k.length>5)freq[k]=(freq[k]||0)+1});
+  lines=lines.filter(l=>{const k=l.trim();return !(freq[k]>=3&&!/^\(?[A-Da-d]\)/.test(k))&&!/^[-—\s]*第?\s*\d+\s*頁[-—\s]*$/.test(k)&&!/^-?\s*\d+\s*-?$/.test(k)});
+  const QA=/^\s*\(\s*([A-Da-d1-4#](?:[.,、 ]*[A-Da-d])*)\s*\)\s*\.?\s*(\d[\d ]{0,4}?)\s*[.、](?!\d+\s*[A-Za-z%°(])\s*/;
   const QA2=/^\s*\(\s*([A-Da-d1-4#](?:[.,、 ]*[A-Da-d])*)\s*\)\s*\.?\s*(\d{1,3})\s*(?=[^\x00-\x7f(])/;
   const QN=/^\s*(\d{1,3})\s*[.、]\s*(?!\d)/;
   const SEC=/^\s*(第\s*[一二三四五六七八九十百\d]+\s*[回卷單元部分課章節]+|[一二三四五六七八九十]+、\s*(?:單選題|選擇題|多選題|題組)[^\n]{0,20})\s*$/;
@@ -28,6 +31,7 @@ function parseQuiz(src){
     }
     if((m=ln.match(QA))){cur={t:'q',ans:m[1],n:parseInt(m[2].replace(/ /g,'')),body:[ln.slice(m[0].length)]};items.push(cur);anyQ=true;continue}
     if((m=ln.match(QA2))&&cur&&cur.t==='q'){const n=+m[2];if(n-cur.n>0&&n-cur.n<=2){cur={t:'q',ans:m[1],n,body:[ln.slice(m[0].length)]};items.push(cur);continue}}
+    if((m=ln.match(/^\s*第\s*(\d{1,3})\s*題\s*/))){cur={t:'q',ans:null,n:+m[1],body:[ln.slice(m[0].length)]};items.push(cur);anyQ=true;continue}
     if((m=ln.match(QN))){cur={t:'q',ans:null,n:+m[1],body:[ln.slice(m[0].length)]};items.push(cur);anyQ=true;continue}
     if(cur) cur.body.push(ln); else items.push({t:'text',line:ln});
   }
@@ -46,6 +50,19 @@ function parseQuiz(src){
     }
     const opts=[0,1,2].map(i=>text.slice(pos[i][1],pos[i+1][0]));
     const ds=pos[3][1];
+    const TAIL=/(?:解題關鍵|解析|詳解|說明)\s*[:：]|(?:正確)?答案\s*[:：]?\s*\(?[A-Da-d]\)?(?![A-Za-z])/g;
+    TAIL.lastIndex=ds;const tm=TAIL.exec(text);
+    if(tm){
+      const tail=text.slice(tm.index);
+      const am=tail.match(/^(?:(?:解題關鍵|解析|詳解|說明)\s*[:：]\s*([\s\S]*?))?(?:正確)?答案\s*[:：]?\s*\(?([A-Da-d])\)?(?![A-Za-z])/);
+      let after, exp='', ans=null;
+      if(am&&am[0].length<600){exp=(am[1]||'').trim();ans=am[2];after=tm.index+am[0].length}
+      else{const e=text.indexOf('\n',tm.index);exp=text.slice(tm.index,e).replace(/^[^:：]*[:：]/,'').trim();after=e}
+      const lineEnd=text.indexOf('\n',after);
+      opts.push(text.slice(ds,tm.index));
+      const clean=s=>s.replace(/\s*\n\s*/g,'').trim().replace(/[。.;；]+$/,'').trim();
+      return {stem:text.slice(0,pos[0][0]).replace(/\s*\n\s*/g,'').trim(),opts:opts.map(clean),rest:text.slice(lineEnd<0?text.length:lineEnd).split('\n'),ans,exp:exp.replace(/\s*\n\s*/g,'')};
+    }
     let k=0;offs.forEach((o,i)=>{if(o<=ds)k=i});
     let end=text.indexOf('\n',ds);
     const dmax=Math.max(...opts.map(o=>noWS(o).length))*1.6+8;
@@ -72,15 +89,18 @@ function parseQuiz(src){
     if(it.t==='text'){pending.push(it.line);continue}
     if(sec<0){sections.push('全部題目');sec=0}
     if(!seenQ){seenQ=true;if(pending.join('').match(/姓名|班級|座號|得分|考試時間/))pending=[]}
-    const r=splitOpts(it.body);
+    let r=splitOpts(it.body);
+    if(r&&(r.opts.some(o=>o.length>220)||r.stem.length>600||r.opts.filter(o=>!o).length>1)) r=null;
     if(!r){fails.push({sec:sections[sec],n:it.n,text:it.body.join(' ').slice(0,120)});continue}
     let first=false;
     if(pending.length) first=flush();
     let p=null;
-    if(curP!=null&&(REF.test(r.stem)||(first&&!r.stem.startsWith('下列')))) p=curP; else curP=null;
+    if(curP!=null&&(REF.test(r.stem)||(first&&!r.stem.startsWith('下列')&&passages[curP].length<1500))) p=curP; else curP=null;
     let a=[];
+    if(!it.ans&&r.ans) it.ans=r.ans;
     if(it.ans&&it.ans!=='#') a=[...new Set([...it.ans].filter(c=>/[A-Da-d1-4]/.test(c)).map(c=>/\d/.test(c)?+c-1:'ABCD'.indexOf(c.toUpperCase())))].sort();
-    const q={s:sec,n:it.n,q:r.stem,o:r.opts,a};
+    const q={s:sec,n:it.n,q:r.stem.replace(/^.{0,24}?題目(?:情境|敘述)\s*[:：]\s*/,''),o:r.opts,a};
+    if(r.exp) q.e=r.exp;
     if(p!=null) q.p=p;
     questions.push(q);
     pending.push(...r.rest);
@@ -98,7 +118,10 @@ function parseQuiz(src){
   });
   const FW={',':'，',':':'：',';':'；','?':'？','!':'！','(':'（',')':'）'};
   const fw=t=>t.replace(/(?<=[^\x00-\x7f])[,:;?!()]|[,:;?!()](?=[^\x00-\x7f])/g,c=>FW[c]);
-  questions.forEach(q=>{q.q=fw(q.q);q.o=q.o.map(fw)});
-  return {sections,passages:passages.map(fw),questions,fails};
+  questions.forEach(q=>{q.q=fw(q.q);q.o=q.o.map(fw);if(q.e)q.e=fw(q.e)});
+  // 去掉沒有題目的段落，重新編號
+  const used=[...new Set(questions.map(q=>q.s))].sort((a,b)=>a-b);
+  questions.forEach(q=>{q.s=used.indexOf(q.s)});
+  return {sections:used.map(i=>sections[i]),passages:passages.map(fw),questions,fails};
 }
 if(typeof module!=='undefined') module.exports=parseQuiz;

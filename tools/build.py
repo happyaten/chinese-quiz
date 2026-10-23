@@ -10,5 +10,6 @@ for q in d['questions']:
     qs.append(o)
 data={'sections':['第'+c+'回' for c in '一二三四五六七八九十'],'passages':[fw(p) for p in d['passages']],'questions':qs}
 s=json.dumps(data,ensure_ascii=False,separators=(',',':')).replace('</','<\\/')
-page=open('template.html').read().replace('__DATA__',s).replace('__PARSER__',open('parser.js').read().replace("if(typeof module!=='undefined') module.exports=parseQuiz;",''))
+phys=json.dumps(json.load(open('phys.json')),ensure_ascii=False,separators=(',',':')).replace('</','<\\/')
+page=open('template.html').read().replace('__DATA__',s).replace('__PHYS__',phys).replace('__MATH__',json.dumps(json.load(open('math.json')),ensure_ascii=False,separators=(',',':')).replace('</','<\\/')).replace('__PARSER__',open('parser.js').read().replace("if(typeof module!=='undefined') module.exports=parseQuiz;",''))
 open('index-artifact.html','w').write(page)
