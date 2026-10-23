@@ -321,7 +321,7 @@ async function fileText(file){
   if(name.endsWith('.docx')) return docxText(buf);
   if(name.endsWith('.doc')) throw new Error('舊版 Word（.doc）檔讀不到，請在 Word 另存成 .docx 或 .txt 再上傳');
   let t=new TextDecoder('utf-8').decode(buf);
-  if((t.match(/�/g)||[]).length>5){try{t=new TextDecoder('big5').decode(buf)}catch(e){}}
+  if((t.match(/\uFFFD/g)||[]).length>5){try{t=new TextDecoder('big5').decode(buf)}catch(e){}}
   return t;
 }
 
