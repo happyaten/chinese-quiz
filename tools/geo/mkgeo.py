@@ -35,7 +35,7 @@ for s,(k,name) in enumerate(P):
                 d['o']=[o if o else f'圖中選項 {"ABCD"[i]}' for i,o in enumerate(d['o'])]
             log.append((k,n,'W' if whole else 'G',im.size))
         Q.append(d)
-bank={'id':'geo8-mid2','subj':'社會','name':'國二・二段 地理練習卷','source':'高雄楷模書院練習卷・八上地理 翰林／康軒南一版 3-1～第四章','sections':[n for _,n in P],'passages':[],'questions':Q}
+bank={'id':'geo8-mid2','subj':'地理','name':'國二・二段 地理練習卷','source':'高雄楷模書院練習卷・八上地理 翰林／康軒南一版 3-1～第四章','sections':[n for _,n in P],'passages':[],'questions':Q}
 json.dump(bank,open('../geo2.json','w'),ensure_ascii=False)
 print(len(Q),sum('img' in q for q in Q),sum('e' in q for q in Q))
 for l in log: print(l)
