@@ -94,6 +94,10 @@ button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outli
 .rv .a .y{color:var(--bad)}
 .rv .a .c{color:var(--ok);font-weight:700}
 .empty{color:var(--muted);padding:20px 0}
+/* subject tabs */
+.subjects{display:flex;gap:4px;margin-top:18px;border-bottom:1.5px solid var(--line);overflow-x:auto}
+.subj{flex:none;background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1.5px;padding:10px 16px;font-size:17px;font-weight:500;color:var(--muted);min-height:48px}
+.subj[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
 /* bank switcher & import */
 .banks{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-top:16px;scrollbar-width:thin}
 .banks .chip{flex:none;max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -129,16 +133,19 @@ mjx-container{display:inline-block;max-width:100%;overflow-x:auto;overflow-y:hid
 <script id="data" type="application/json">__DATA__</script>
 <script id="data-phys" type="application/json">__PHYS__</script>
 <script id="data-math" type="application/json">__MATH__</script>
+<script id="data-zh2" type="application/json">__ZH2__</script>
 <script>
 __PARSER__
 </script>
 <script>
-const BUILTIN=(()=>{const d=JSON.parse(document.getElementById('data').textContent);return {id:'builtin',name:'國文選擇題 3000 題',source:'朱源葆博士彙編',...d}})();
-const BUILTINS=[BUILTIN,...['data-phys','data-math'].map(id=>JSON.parse(document.getElementById(id).textContent))];
+const BUILTIN=(()=>{const d=JSON.parse(document.getElementById('data').textContent);return {id:'builtin',subj:'國文',name:'國文選擇題 3000 題',source:'朱源葆博士彙編',...d}})();
+const BUILTINS=[BUILTIN,...['data-zh2','data-math','data-phys'].map(id=>JSON.parse(document.getElementById(id).textContent))];
 const BKEY='quiz-banks-v1', SKEY='quiz-state-v2';
 let banks=[];
 try{banks=JSON.parse(localStorage.getItem(BKEY)||'[]')}catch(e){}
-let store={banks:{},fs:18,mode:'seq',size:0,cur:'builtin'};
+let store={banks:{},fs:18,mode:'seq',size:0,cur:'builtin',subj:'國文'};
+const SUBJS=['國文','數學','理化','英文','社會','其他'];
+const subjOf=b=>b.subj||'其他';
 try{Object.assign(store,JSON.parse(localStorage.getItem(SKEY)||'{}'))}catch(e){}
 try{const old=JSON.parse(localStorage.getItem('zh-quiz-v1')||'null');
   if(old&&!store.banks.builtin){store.banks.builtin={wrong:old.wrong||{},done:old.done||{}};['fs','mode','size'].forEach(k=>{if(old[k]!=null)store[k]=old[k]})}}catch(e){}
@@ -148,6 +155,7 @@ const allBanks=()=>[...BUILTINS,...banks];
 let B; // current bank
 function useBank(id){
   B=allBanks().find(b=>b.id===id)||BUILTIN; store.cur=B.id;
+  store.lastBySubj=Object.assign(store.lastBySubj||{},{[subjOf(B)]:B.id});
   B.questions.forEach((q,i)=>{q.id=i});
   if(!store.banks[B.id]) store.banks[B.id]={wrong:{},done:{}};
   save();
@@ -181,9 +189,12 @@ function home(){
   const noAns=Q.filter(q=>!hasAns(q)).length;
   let html=`<h1>${esc(B.name)}</h1>
   <div class="sub">共 ${Q.length} 題${B.sections.length>1?`・分 ${B.sections.length} 部分`:''}${B.source?`・${esc(B.source)}`:''}　已作答 ${doneAll} 題</div>
-  <div class="banks" role="tablist" aria-label="題庫">
+  <div class="subjects" role="tablist" aria-label="科目">
+    ${SUBJS.filter(s=>allBanks().some(b=>subjOf(b)===s)).map(s=>`<button class="subj" role="tab" data-subj="${s}" aria-selected="${subjOf(B)===s}">${s}</button>`).join('')}
+  </div>
+  <div class="banks" aria-label="題庫">
+    ${allBanks().filter(b=>subjOf(b)===subjOf(B)).map(b=>`<button class="chip" data-bank="${esc(b.id)}" aria-pressed="${b.id===B.id}">${esc(b.name)}</button>`).join('')}
     <button class="chip add" id="addBank">＋ 匯入測驗卷</button>
-    ${allBanks().map(b=>`<button class="chip" data-bank="${esc(b.id)}" aria-pressed="${b.id===B.id}">${esc(b.name)}</button>`).join('')}
   </div>
   <div class="section-label">出題方式</div>
   <div class="seg" id="mode">
@@ -210,6 +221,7 @@ function home(){
   <br><button class="linkbtn" id="reset">清除這個題庫的作答紀錄</button>${!BUILTINS.includes(B)?`　<button class="danger" id="del">刪除這個題庫</button>`:''}</p>`;
   app.innerHTML=html;
   app.querySelectorAll('[data-bank]').forEach(b=>b.onclick=()=>{useBank(b.dataset.bank);home()});
+  app.querySelectorAll('[data-subj]').forEach(b=>b.onclick=()=>{const s=b.dataset.subj;if(subjOf(B)===s)return;const first=allBanks().find(x=>subjOf(x)===s);const last=allBanks().find(x=>x.id===(store.lastBySubj||{})[s]);useBank((last||first).id);home()});
   app.querySelector('[data-bank][aria-pressed="true"]')?.scrollIntoView({inline:'nearest',block:'nearest'});
   document.getElementById('addBank').onclick=importView;
   app.querySelectorAll('#mode .chip').forEach(b=>b.onclick=()=>{store.mode=b.dataset.v;save();home()});
@@ -353,6 +365,8 @@ function importView(){
   app.innerHTML=`<div class="top"><button class="iconbtn" id="back">← 返回</button></div>
   <h2>匯入測驗卷</h2>
   <div class="sub">上傳檔案或貼上題目文字，會自動整理成可以點選作答的題庫。</div>
+  <div class="section-label">科目</div>
+  <div class="seg" id="impSubj">${SUBJS.map(s=>`<button class="chip" data-v="${s}" aria-pressed="${s===subjOf(B)}">${s}</button>`).join('')}</div>
   <div class="section-label">題庫名稱</div>
   <div class="field"><input type="text" id="bankName" placeholder="例如：八年級國文第一次段考" maxlength="40"></div>
   <div class="section-label">上傳檔案</div>
@@ -378,6 +392,8 @@ function importView(){
   foot.innerHTML=`<div class="in"><button class="primary" id="doParse" disabled>先上傳檔案或貼上文字</button></div>`;
   document.body.appendChild(foot);
   document.getElementById('back').onclick=home;
+  IMP.subj=subjOf(B);
+  app.querySelectorAll('#impSubj .chip').forEach(b=>b.onclick=()=>{IMP.subj=b.dataset.v;app.querySelectorAll('#impSubj .chip').forEach(x=>x.setAttribute('aria-pressed',x===b))});
   const fileIn=document.getElementById('file'), drop=document.getElementById('drop'), paste=document.getElementById('paste'), nameIn=document.getElementById('bankName');
   const btn=document.getElementById('doParse');
   const setReady=()=>{btn.disabled=!IMP.text.trim();btn.textContent=IMP.text.trim()?'整理題目':'先上傳檔案或貼上文字'};
@@ -414,7 +430,7 @@ function importView(){
   function saveImport(){
     const r=IMP.result;
     const name=nameIn.value.trim()||`我的題庫 ${banks.length+1}`;
-    const bank={id:'b'+Date.now().toString(36),name,source:'自行匯入',sections:r.sections,passages:r.passages,questions:r.questions.map(({s,n,q,o,a,p,e})=>Object.assign({s,n,q,o,a},p!=null?{p}:{},e?{e}:{}))};
+    const bank={id:'b'+Date.now().toString(36),subj:IMP.subj,name,source:'自行匯入',sections:r.sections,passages:r.passages,questions:r.questions.map(({s,n,q,o,a,p,e})=>Object.assign({s,n,q,o,a},p!=null?{p}:{},e?{e}:{}))};
     banks.push(bank);
     if(!saveBanks()){banks.pop();status('err','這台裝置的瀏覽器儲存空間不夠，請先刪除用不到的題庫再試一次。');return}
     useBank(bank.id); home();
