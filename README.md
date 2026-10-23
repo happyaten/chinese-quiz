@@ -40,3 +40,5 @@
 - `tools/parse.py`、`tools/build.py`、`tools/template.html`：產生內建題庫用的程式與頁面範本。
 - `tools/phys.py`、`tools/math/`：理化與數學題庫的題目、解析與附圖。
 - `tools/zh/`：國二二段國文練習卷的解析程式（題目卷＋解析卷）與圖表截圖，產生 `tools/zh2.json`。
+- `tools/ph/`：二段理化練習卷的解析與附圖裁切程式，產生 `tools/ph2.json`。
+- `tools/gifted/`：資優理化段考的題目、答案與附圖框（`d1.py`～`d3.py`），用 `mkgt.py` 產生 `tools/gt.json`。
