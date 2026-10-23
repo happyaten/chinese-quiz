@@ -1,0 +1,410 @@
+<title>國文選擇題庫</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: one centered column like an answer sheet; big tap targets, sticky footer action on the quiz screen */
+:root{
+  --bg:#f3f5f4; --card:#ffffff; --ink:#1d2a2a; --muted:#5d6b6a; --line:#d8dfdd;
+  --accent:#1f5f5b; --accent-ink:#ffffff; --accent-soft:#e1eeec;
+  --ok:#1e7a46; --ok-soft:#e2f3e8; --bad:#b3362c; --bad-soft:#fbe7e4; --warn:#8a6414; --warn-soft:#f7efd9;
+  --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --fs:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121817; --card:#1b2322; --ink:#e4ecea; --muted:#9aaba8; --line:#2e3a38;
+  --accent:#5fb3aa; --accent-ink:#0d1716; --accent-soft:#1f3532;
+  --ok:#5cc98a; --ok-soft:#173326; --bad:#f08070; --bad-soft:#3a1d1a; --warn:#e0b45a; --warn-soft:#352b14; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121817; --card:#1b2322; --ink:#e4ecea; --muted:#9aaba8; --line:#2e3a38;
+  --accent:#5fb3aa; --accent-ink:#0d1716; --accent-soft:#1f3532;
+  --ok:#5cc98a; --ok-soft:#173326; --bad:#f08070; --bad-soft:#3a1d1a; --warn:#e0b45a; --warn-soft:#352b14; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 120px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2{font-family:var(--serif);text-wrap:balance;margin:0}
+h1{font-size:30px;letter-spacing:.04em}
+.sub{color:var(--muted);font-size:14px;margin-top:4px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.section-label{font-size:13px;letter-spacing:.12em;color:var(--muted);margin:28px 0 10px;font-weight:500}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:8px 16px;font-size:15px;min-height:44px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.rounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.round{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 14px 12px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:96px}
+.round:active{transform:scale(.98)}
+.round b{font-family:var(--serif);font-size:20px;font-weight:700}
+.round span{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0}
+.round.all{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.round.all span{color:inherit;opacity:.85}
+.round.wrong{border-color:var(--bad)}
+.round:disabled{opacity:.45}
+.note{font-size:13px;color:var(--muted);margin-top:24px;line-height:1.7}
+.linkbtn{background:none;border:0;color:var(--accent);text-decoration:underline;padding:0;font-size:13px}
+
+/* quiz */
+.top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.iconbtn{border:1.5px solid var(--line);background:var(--card);border-radius:10px;min-width:44px;height:44px;padding:0 12px;font-size:15px}
+.prog{flex:1;min-width:0}
+.prog .bar{height:8px}
+.prog .bar i{background:var(--accent)}
+.prog small{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;margin-top:3px}
+.passage{background:var(--card);border:1.5px solid var(--line);border-radius:14px;margin-bottom:14px}
+.passage summary{padding:12px 16px;font-weight:500;color:var(--accent);list-style:none;display:flex;justify-content:space-between;min-height:44px;align-items:center}
+.passage summary::-webkit-details-marker{display:none}
+.passage summary::after{content:"展開";font-size:13px;color:var(--muted)}
+.passage[open] summary::after{content:"收合"}
+.passage div{padding:0 16px 16px;font-family:var(--serif);font-size:calc(var(--fs) - 1px);line-height:1.9;white-space:pre-wrap;max-height:50vh;overflow:auto}
+.qmeta{font-size:13px;color:var(--muted);letter-spacing:.06em;margin-bottom:6px}
+.stem{font-family:var(--serif);font-size:calc(var(--fs) + 2px);line-height:1.8;font-weight:500;margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px 14px;min-height:56px;font-size:var(--fs);line-height:1.6;transition:background .15s,border-color .15s}
+.opt .k{flex:none;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:15px;font-family:var(--sans)}
+.opt .t{min-width:0;overflow-wrap:anywhere;padding-top:2px}
+@media (hover:hover){.opt:not(:disabled):hover{border-color:var(--accent)}}
+.opt:not(:disabled):active{transform:scale(.99)}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.ok .k{background:var(--ok);border-color:var(--ok);color:var(--card)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.opt.bad .k{background:var(--bad);border-color:var(--bad);color:var(--card)}
+.opt.dim{opacity:.55}
+.fb{margin-top:14px;border-radius:12px;padding:12px 16px;font-weight:700;font-size:17px}
+.fb.ok{background:var(--ok-soft);color:var(--ok)}
+.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.fb.na{background:var(--warn-soft);color:var(--warn);font-weight:500;font-size:15px}
+.foot{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.foot .in{max-width:760px;margin:0 auto;display:flex;gap:10px}
+.primary{flex:1;background:var(--accent);color:var(--accent-ink);border:0;border-radius:14px;min-height:54px;font-size:18px;font-weight:700}
+.primary:disabled{opacity:.35}
+.secondary{background:var(--card);border:1.5px solid var(--line);border-radius:14px;min-height:54px;padding:0 18px;font-size:16px}
+
+/* result */
+.score{font-family:var(--serif);font-size:64px;font-weight:700;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.score small{font-size:22px;color:var(--muted)}
+.review{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.rv{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px}
+.rv p{margin:0 0 6px;font-family:var(--serif);font-size:17px}
+.rv .a{font-size:15px}
+.rv .a .y{color:var(--bad)}
+.rv .a .c{color:var(--ok);font-weight:700}
+.empty{color:var(--muted);padding:20px 0}
+/* bank switcher & import */
+.banks{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-top:16px;scrollbar-width:thin}
+.banks .chip{flex:none;max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip.add{border-style:dashed;color:var(--accent);font-weight:700}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.field input[type=text],.field textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;width:100%}
+.field textarea{min-height:160px;resize:vertical;line-height:1.6}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;border:2px dashed var(--line);border-radius:14px;padding:22px 16px;background:var(--card);cursor:pointer;min-height:110px}
+.drop.on{border-color:var(--accent);background:var(--accent-soft)}
+.drop b{color:var(--accent);font-size:17px}
+.drop span{color:var(--muted);font-size:13px}
+.or{text-align:center;color:var(--muted);font-size:13px;margin:14px 0 4px}
+.status{margin-top:14px;border-radius:12px;padding:12px 16px;font-size:15px}
+.status.info{background:var(--accent-soft);color:var(--accent)}
+.status.err{background:var(--bad-soft);color:var(--bad)}
+.status.ok{background:var(--ok-soft);color:var(--ok)}
+.prev{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 16px;font-size:15px}
+.prev p{margin:0 0 4px;font-family:var(--serif)}
+.prev ol{margin:0;padding-left:0;list-style:none;color:var(--muted)}
+.prev .c{color:var(--ok);font-weight:700}
+.fmt{font-size:14px;color:var(--muted);background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 16px;margin-top:10px}
+.fmt pre{font-family:var(--sans);white-space:pre-wrap;margin:8px 0 0;color:var(--ink);font-size:14px;line-height:1.7}
+.danger{background:none;border:0;color:var(--bad);text-decoration:underline;padding:0;font-size:13px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.opt:active,.round:active{transform:none}}
+</style>
+
+<div class="wrap" id="app"></div>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+__PARSER__
+</script>
+<script>
+const BUILTIN=(()=>{const d=JSON.parse(document.getElementById('data').textContent);return {id:'builtin',name:'國文選擇題 3000 題',source:'朱源葆博士彙編',...d}})();
+const BKEY='quiz-banks-v1', SKEY='quiz-state-v2';
+let banks=[];
+try{banks=JSON.parse(localStorage.getItem(BKEY)||'[]')}catch(e){}
+let store={banks:{},fs:18,mode:'seq',size:0,cur:'builtin'};
+try{Object.assign(store,JSON.parse(localStorage.getItem(SKEY)||'{}'))}catch(e){}
+try{const old=JSON.parse(localStorage.getItem('zh-quiz-v1')||'null');
+  if(old&&!store.banks.builtin){store.banks.builtin={wrong:old.wrong||{},done:old.done||{}};['fs','mode','size'].forEach(k=>{if(old[k]!=null)store[k]=old[k]})}}catch(e){}
+function save(){try{localStorage.setItem(SKEY,JSON.stringify(store))}catch(e){}}
+function saveBanks(){try{localStorage.setItem(BKEY,JSON.stringify(banks));return true}catch(e){return false}}
+const allBanks=()=>[BUILTIN,...banks];
+let B; // current bank
+function useBank(id){
+  B=allBanks().find(b=>b.id===id)||BUILTIN; store.cur=B.id;
+  B.questions.forEach((q,i)=>{q.id=i});
+  if(!store.banks[B.id]) store.banks[B.id]={wrong:{},done:{}};
+  save();
+}
+const prog=()=>store.banks[B.id];
+function applyFs(){document.documentElement.style.setProperty('--fs',store.fs+'px')}
+applyFs(); useBank(store.cur);
+const app=document.getElementById('app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hasAns=q=>q.a&&q.a.length>0;
+const L='ABCD';
+let S=null;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function clearFoot(){document.getElementById('foot')?.remove()}
+
+function home(){
+  S=null; window.scrollTo(0,0); clearFoot();
+  const Q=B.questions, pr=prog();
+  const bySec=B.sections.map(()=>[]);Q.forEach(q=>bySec[q.s]&&bySec[q.s].push(q));
+  const wrongN=Object.keys(pr.wrong).length, doneAll=Q.filter(q=>pr.done[q.id]).length;
+  const noAns=Q.filter(q=>!hasAns(q)).length;
+  let html=`<h1>${esc(B.name)}</h1>
+  <div class="sub">共 ${Q.length} 題${B.sections.length>1?`・分 ${B.sections.length} 部分`:''}${B.source?`・${esc(B.source)}`:''}　已作答 ${doneAll} 題</div>
+  <div class="banks" role="tablist" aria-label="題庫">
+    <button class="chip add" id="addBank">＋ 匯入測驗卷</button>
+    ${allBanks().map(b=>`<button class="chip" data-bank="${esc(b.id)}" aria-pressed="${b.id===B.id}">${esc(b.name)}</button>`).join('')}
+  </div>
+  <div class="section-label">出題方式</div>
+  <div class="seg" id="mode">
+    <button class="chip" data-v="seq" aria-pressed="${store.mode==='seq'}">依題號順序</button>
+    <button class="chip" data-v="rand" aria-pressed="${store.mode==='rand'}">隨機打亂</button>
+  </div>
+  <div class="section-label">每次題數</div>
+  <div class="seg" id="size">
+    ${[[10,'10 題'],[20,'20 題'],[50,'50 題'],[0,'全部']].map(([v,l])=>`<button class="chip" data-v="${v}" aria-pressed="${store.size===v}">${l}</button>`).join('')}
+  </div>
+  <div class="section-label">選擇範圍</div>
+  <div class="rounds">
+    <button class="round all" data-r="all"><b>全部混合</b><span>從 ${Q.filter(hasAns).length} 題中抽題</span></button>
+    <button class="round wrong" data-r="wrong" ${wrongN?'':'disabled'}><b>錯題複習</b><span>${wrongN?`目前 ${wrongN} 題答錯過`:'還沒有錯題'}</span></button>`;
+  if(B.sections.length>1) B.sections.forEach((name,i)=>{
+    const qs=bySec[i];const d=qs.filter(q=>pr.done[q.id]).length;
+    if(!qs.length) return;
+    html+=`<button class="round" data-r="${i}"><b>${esc(name)}</b><span>${qs.length} 題・已做 ${d}</span><div class="bar"><i style="width:${d/qs.length*100}%"></i></div></button>`;
+  });
+  html+=`</div>
+  <div class="section-label">字體大小</div>
+  <div class="seg" id="fs">${[[16,'小'],[18,'中'],[21,'大'],[24,'特大']].map(([v,l])=>`<button class="chip" data-v="${v}" aria-pressed="${store.fs===v}">${l}</button>`).join('')}</div>
+  <p class="note">${noAns?`有 ${noAns} 題原檔沒有附答案，作答時會標示「原檔未附答案」，不計入分數。`:''}題目由檔案自動整理，作答紀錄和匯入的題庫只存在這台裝置的瀏覽器裡。
+  <br><button class="linkbtn" id="reset">清除這個題庫的作答紀錄</button>${B.id!=='builtin'?`　<button class="danger" id="del">刪除這個題庫</button>`:''}</p>`;
+  app.innerHTML=html;
+  app.querySelectorAll('[data-bank]').forEach(b=>b.onclick=()=>{useBank(b.dataset.bank);home()});
+  app.querySelector('[data-bank][aria-pressed="true"]')?.scrollIntoView({inline:'nearest',block:'nearest'});
+  document.getElementById('addBank').onclick=importView;
+  app.querySelectorAll('#mode .chip').forEach(b=>b.onclick=()=>{store.mode=b.dataset.v;save();home()});
+  app.querySelectorAll('#size .chip').forEach(b=>b.onclick=()=>{store.size=+b.dataset.v;save();home()});
+  app.querySelectorAll('#fs .chip').forEach(b=>b.onclick=()=>{store.fs=+b.dataset.v;save();applyFs();home()});
+  app.querySelectorAll('.round').forEach(b=>b.onclick=()=>start(b.dataset.r));
+  const confirmBtn=(el,label,fn)=>{el.onclick=()=>{if(el.dataset.c)fn();else{el.dataset.c=1;el.textContent=label}}};
+  confirmBtn(document.getElementById('reset'),'再按一次確認清除',()=>{store.banks[B.id]={wrong:{},done:{}};save();home()});
+  const del=document.getElementById('del');
+  if(del) confirmBtn(del,'再按一次確認刪除',()=>{banks=banks.filter(b=>b.id!==B.id);delete store.banks[B.id];saveBanks();useBank('builtin');home()});
+}
+
+function start(r){
+  const Q=B.questions, pr=prog();
+  let pool,label;
+  if(r==='all'){pool=Q.filter(hasAns);label='全部混合'}
+  else if(r==='wrong'){pool=Q.filter(q=>pr.wrong[q.id]);label='錯題複習'}
+  else {pool=Q.filter(q=>q.s==+r);label=B.sections[+r]}
+  if(store.mode==='rand'||r==='all') pool=shuffle(pool);
+  if(store.size&&pool.length>store.size){
+    if(store.mode==='seq'&&r!=='all'&&r!=='wrong'){
+      let i=pool.findIndex(q=>!pr.done[q.id]); if(i<0)i=0;
+      const all=pool; pool=all.slice(i,i+store.size);
+      if(pool.length<store.size) pool=pool.concat(all.slice(0,store.size-pool.length));
+    } else pool=pool.slice(0,store.size);
+  }
+  S={label,list:pool,i:0,ans:[]};
+  renderQ();
+}
+
+function renderQ(){
+  window.scrollTo(0,0);
+  const q=S.list[S.i];
+  const scored=S.ans.filter(a=>a&&a.scored), right=scored.filter(a=>a.ok).length;
+  let h=`<div class="top"><button class="iconbtn" id="back" aria-label="回首頁">← 首頁</button>
+    <div class="prog"><div class="bar"><i style="width:${S.i/S.list.length*100}%"></i></div>
+    <small><span>${esc(S.label)}　第 ${S.i+1} / ${S.list.length} 題</span><span>答對 ${right} / ${scored.length}</span></small></div></div>`;
+  if(q.p!=null) h+=`<details class="passage" open><summary>閱讀文章</summary><div>${esc(B.passages[q.p])}</div></details>`;
+  h+=`<div class="qmeta">${B.sections.length>1?esc(B.sections[q.s])+'・':''}第 ${q.n} 題</div><p class="stem">${esc(q.q)}</p><div class="opts">`;
+  q.o.forEach((o,k)=>{h+=`<button class="opt" data-k="${k}"><span class="k">${L[k]}</span><span class="t">${esc(o||'（原檔此選項空白）')}</span></button>`});
+  h+=`</div><div id="fb"></div>`;
+  app.innerHTML=h;
+  document.getElementById('back').onclick=home;
+  app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>pick(+b.dataset.k));
+  let f=document.getElementById('foot');
+  if(!f){f=document.createElement('div');f.id='foot';f.className='foot';document.body.appendChild(f)}
+  f.innerHTML=`<div class="in"><button class="secondary" id="skip">跳過</button><button class="primary" id="next" disabled>請點選答案</button></div>`;
+  document.getElementById('skip').onclick=next;
+  document.getElementById('next').onclick=next;
+}
+
+function pick(k){
+  const q=S.list[S.i], pr=prog();
+  if(S.ans[S.i])return;
+  const scored=hasAns(q), ok=scored&&q.a.includes(k);
+  S.ans[S.i]={k,ok,scored};
+  pr.done[q.id]=1;
+  if(scored){ if(ok) delete pr.wrong[q.id]; else pr.wrong[q.id]=1; }
+  save();
+  app.querySelectorAll('.opt').forEach((b,i)=>{
+    b.disabled=true;
+    if(scored&&q.a.includes(i)) b.classList.add('ok');
+    else if(i===k) b.classList.add(scored?'bad':'ok');
+    else b.classList.add('dim');
+  });
+  const fb=document.getElementById('fb');
+  const ansTxt=scored?q.a.map(i=>L[i]).join('、'):'';
+  fb.innerHTML=!scored?`<div class="fb na">原檔未附這題的答案，這題不計分。</div>`
+    : ok?`<div class="fb ok">答對了！正確答案是 ${ansTxt}</div>`:`<div class="fb bad">答錯了，正確答案是 ${ansTxt}</div>`;
+  const nb=document.getElementById('next');
+  nb.disabled=false; nb.textContent=S.i+1<S.list.length?'下一題 →':'看成績';
+  document.getElementById('skip').hidden=true;
+  fb.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function next(){ S.i++; if(S.i<S.list.length) renderQ(); else result(); }
+
+function result(){
+  window.scrollTo(0,0); clearFoot();
+  const scored=S.ans.map((a,i)=>({a,q:S.list[i]})).filter(x=>x.a&&x.a.scored);
+  const right=scored.filter(x=>x.a.ok).length, wrong=scored.filter(x=>!x.a.ok);
+  const pct=scored.length?Math.round(right/scored.length*100):0;
+  let h=`<div class="top"><button class="iconbtn" id="back">← 首頁</button></div>
+  <h2>${esc(S.label)}　成績</h2>
+  <div style="margin:18px 0 6px" class="score">${pct}<small> 分</small></div>
+  <div class="sub">答對 ${right} 題・答錯 ${wrong.length} 題${S.list.length>scored.length?`・未作答或不計分 ${S.list.length-scored.length} 題`:''}</div>
+  <div class="section-label">答錯的題目</div><div class="review">`;
+  if(!wrong.length) h+=`<div class="empty">這次全部答對，太厲害了！</div>`;
+  wrong.forEach(({a,q})=>{h+=`<div class="rv"><p>${B.sections.length>1?esc(B.sections[q.s])+' ':''}${q.n}. ${esc(q.q)}</p>
+    <div class="a">你選 <span class="y">${L[a.k]}　${esc(q.o[a.k])}</span><br>正解 <span class="c">${q.a.map(i=>L[i]+'　'+esc(q.o[i])).join('<br>')}</span></div></div>`});
+  h+=`</div>`;
+  app.innerHTML=h;
+  document.getElementById('back').onclick=home;
+  const f=document.createElement('div');f.id='foot';f.className='foot';
+  f.innerHTML=`<div class="in"><button class="secondary" id="home2">回首頁</button>${wrong.length?'<button class="primary" id="redo">重做這次答錯的題目</button>':'<button class="primary" id="again">再來一組</button>'}</div>`;
+  document.body.appendChild(f);
+  document.getElementById('home2').onclick=home;
+  const redo=document.getElementById('redo'); if(redo) redo.onclick=()=>{S={label:'錯題重做',list:wrong.map(x=>x.q),i:0,ans:[]};renderQ()};
+  const again=document.getElementById('again'); if(again) again.onclick=home;
+}
+
+/* ---------- 匯入測驗卷 ---------- */
+const loaded={};
+function loadScript(src){return loaded[src]||(loaded[src]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('無法載入讀檔工具，請確認網路連線'));document.head.appendChild(s)}))}
+const PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+async function pdfText(buf){
+  await loadScript(PDFJS+'pdf.min.js');
+  pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+'pdf.worker.min.js';
+  const doc=await pdfjsLib.getDocument({data:buf,isEvalSupported:false}).promise;
+  let out=[];
+  for(let p=1;p<=doc.numPages;p++){
+    const tc=await (await doc.getPage(p)).getTextContent();
+    const rows=[];
+    tc.items.forEach(it=>{if(!it.str)return;const y=it.transform[5],x=it.transform[4];
+      let r=rows.find(r=>Math.abs(r.y-y)<3);if(!r){r={y,items:[]};rows.push(r)}r.items.push({x,s:it.str})});
+    rows.sort((a,b)=>b.y-a.y).forEach(r=>out.push(r.items.sort((a,b)=>a.x-b.x).map(i=>i.s).join('')));
+  }
+  return out.join('\n');
+}
+async function docxText(buf){
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+  return (await mammoth.extractRawText({arrayBuffer:buf})).value;
+}
+async function fileText(file){
+  const name=file.name.toLowerCase(), buf=await file.arrayBuffer();
+  if(name.endsWith('.pdf')) return pdfText(buf);
+  if(name.endsWith('.docx')) return docxText(buf);
+  if(name.endsWith('.doc')) throw new Error('舊版 Word（.doc）檔讀不到，請在 Word 另存成 .docx 或 .txt 再上傳');
+  let t=new TextDecoder('utf-8').decode(buf);
+  if((t.match(/�/g)||[]).length>5){try{t=new TextDecoder('big5').decode(buf)}catch(e){}}
+  return t;
+}
+
+let IMP=null;
+function importView(){
+  S=null; window.scrollTo(0,0); clearFoot();
+  IMP={text:'',name:'',result:null};
+  app.innerHTML=`<div class="top"><button class="iconbtn" id="back">← 返回</button></div>
+  <h2>匯入測驗卷</h2>
+  <div class="sub">上傳檔案或貼上題目文字，會自動整理成可以點選作答的題庫。</div>
+  <div class="section-label">題庫名稱</div>
+  <div class="field"><input type="text" id="bankName" placeholder="例如：八年級國文第一次段考" maxlength="40"></div>
+  <div class="section-label">上傳檔案</div>
+  <label class="drop" id="drop" for="file"><b>點這裡選擇檔案</b><span>支援 .txt、.docx（Word）、.pdf（需為文字型 PDF，掃描圖片無法辨識）</span></label>
+  <input type="file" id="file" accept=".txt,.text,.docx,.pdf,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+  <div class="or">或直接貼上題目文字</div>
+  <div class="field"><textarea id="paste" placeholder="把題目整份複製後貼在這裡"></textarea></div>
+  <div id="impStatus"></div>
+  <div id="impPrev"></div>
+  <details class="fmt"><summary>題目要長什麼樣子才能辨識？</summary>
+  <pre>每題用題號開頭，選項用 (A)(B)(C)(D) 或 A. B. C. D. 標示，答案可以寫在題號前面：
+(B)1. 「子夜」相當於什麼時間？
+(A)晚上九點 (B)晚上十一點到凌晨一點 (C)凌晨三點 (D)早上五點
+
+也可以把答案放在最後：
+1. 下列何者正確？ (A)甲 (B)乙 (C)丙 (D)丁
+2. ……
+答案：1.C 2.A 3.B
+或　答案：1-5 CABDA
+
+用「第一回」「第二單元」這類標題分段，會自動分成不同部分；題目前面的閱讀文章也會一起帶出來。</pre></details>`;
+  const foot=document.createElement('div');foot.id='foot';foot.className='foot';
+  foot.innerHTML=`<div class="in"><button class="primary" id="doParse" disabled>先上傳檔案或貼上文字</button></div>`;
+  document.body.appendChild(foot);
+  document.getElementById('back').onclick=home;
+  const fileIn=document.getElementById('file'), drop=document.getElementById('drop'), paste=document.getElementById('paste'), nameIn=document.getElementById('bankName');
+  const btn=document.getElementById('doParse');
+  const setReady=()=>{btn.disabled=!IMP.text.trim();btn.textContent=IMP.text.trim()?'整理題目':'先上傳檔案或貼上文字'};
+  const status=(cls,msg)=>{document.getElementById('impStatus').innerHTML=msg?`<div class="status ${cls}">${msg}</div>`:''};
+  async function takeFile(f){
+    if(!f) return;
+    status('info',`正在讀取「${esc(f.name)}」…`);
+    try{
+      const t=await fileText(f);
+      if(!t.trim()) throw new Error('這個檔案讀不到文字。如果是掃描的 PDF，請改用文字檔或 Word 檔');
+      IMP.text=t; paste.value=t.slice(0,20000)+(t.length>20000?'\n…（以下省略顯示，整理時會用完整內容）':'');
+      if(!nameIn.value) nameIn.value=f.name.replace(/\.(txt|text|pdf|docx)$/i,'').replace(/\.pdf$/i,'').slice(0,40);
+      status('ok',`已讀取「${esc(f.name)}」，共 ${t.length.toLocaleString()} 字。按下方「整理題目」。`);
+      IMP.fromFile=true; document.getElementById('impPrev').innerHTML=''; IMP.result=null; setReady();
+    }catch(e){status('err',esc(e.message||'讀取失敗'))}
+  }
+  fileIn.onchange=()=>takeFile(fileIn.files[0]);
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('on')}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('on')}));
+  drop.addEventListener('drop',e=>takeFile(e.dataTransfer.files[0]));
+  paste.oninput=()=>{IMP.text=paste.value;IMP.fromFile=false;IMP.result=null;document.getElementById('impPrev').innerHTML='';setReady()};
+  btn.onclick=()=>{
+    if(IMP.result){saveImport();return}
+    const r=parseQuiz(IMP.text);
+    if(!r.questions.length){status('err','找不到任何題目。請確認每題有題號，選項用 (A)(B)(C)(D) 標示，可以展開下方說明看範例。');return}
+    IMP.result=r;
+    const withA=r.questions.filter(hasAns).length;
+    status(withA?'ok':'info',`整理出 ${r.questions.length} 題${r.sections.length>1?`（${r.sections.length} 部分）`:''}，其中 ${withA} 題有答案${r.passages.length?`，${r.passages.length} 篇閱讀文章`:''}。${withA<r.questions.length?`沒有答案的 ${r.questions.length-withA} 題可以作答但不計分。`:''}${r.fails.length?`另有 ${r.fails.length} 題找不到四個選項，已略過。`:''}`);
+    const sample=r.questions.slice(0,3).map(q=>`<div class="prev"><p>${q.n}. ${esc(q.q)}</p><ol>${q.o.map((o,i)=>`<li class="${q.a.includes(i)?'c':''}">${L[i]}　${esc(o)}</li>`).join('')}</ol></div>`).join('');
+    const fails=r.fails.length?`<div class="section-label">略過的題目（前 5 題）</div>`+r.fails.slice(0,5).map(f=>`<div class="prev"><ol><li>${esc(f.sec)} 第 ${f.n} 題：${esc(f.text)}…</li></ol></div>`).join(''):'';
+    document.getElementById('impPrev').innerHTML=`<div class="section-label">前幾題預覽</div><div class="review">${sample}</div>${fails}`;
+    btn.textContent='儲存題庫並開始';
+  };
+  function saveImport(){
+    const r=IMP.result;
+    const name=nameIn.value.trim()||`我的題庫 ${banks.length+1}`;
+    const bank={id:'b'+Date.now().toString(36),name,source:'自行匯入',sections:r.sections,passages:r.passages,questions:r.questions.map(({s,n,q,o,a,p})=>p!=null?{s,n,q,o,a,p}:{s,n,q,o,a})};
+    banks.push(bank);
+    if(!saveBanks()){banks.pop();status('err','這台裝置的瀏覽器儲存空間不夠，請先刪除用不到的題庫再試一次。');return}
+    useBank(bank.id); home();
+  }
+}
+
+document.addEventListener('keydown',e=>{
+  if(!S||!S.list[S.i]) return;
+  const m={'1':0,'2':1,'3':2,'4':3,a:0,b:1,c:2,d:3}[e.key.toLowerCase()];
+  if(m!=null&&!S.ans[S.i]) pick(m);
+  else if(e.key==='Enter'&&S.ans[S.i]) next();
+});
+home();
+</script>
