@@ -138,17 +138,18 @@ mjx-container{display:inline-block;max-width:100%;overflow-x:auto;overflow-y:hid
 <script id="data-gt" type="application/json">__GT__</script>
 <script id="data-geo" type="application/json">__GEO__</script>
 <script id="data-his" type="application/json">__HIS__</script>
+<script id="data-civ" type="application/json">__CIV__</script>
 <script>
 __PARSER__
 </script>
 <script>
 const BUILTIN=(()=>{const d=JSON.parse(document.getElementById('data').textContent);return {id:'builtin',subj:'國文',name:'國文選擇題 3000 題',source:'朱源葆博士彙編',...d}})();
-const BUILTINS=[BUILTIN,...['data-zh2','data-math','data-ph2','data-gt','data-phys','data-geo','data-his'].map(id=>JSON.parse(document.getElementById(id).textContent))];
+const BUILTINS=[BUILTIN,...['data-zh2','data-math','data-ph2','data-gt','data-phys','data-geo','data-his','data-civ'].map(id=>JSON.parse(document.getElementById(id).textContent))];
 const BKEY='quiz-banks-v1', SKEY='quiz-state-v2';
 let banks=[];
 try{banks=JSON.parse(localStorage.getItem(BKEY)||'[]')}catch(e){}
 let store={banks:{},fs:18,mode:'seq',size:0,cur:'builtin',subj:'國文'};
-const SUBJS=['國文','數學','理化','地理','歷史','英文','社會','其他'];
+const SUBJS=['國文','數學','理化','地理','歷史','公民','英文','社會','其他'];
 const subjOf=b=>b.subj||'其他';
 try{Object.assign(store,JSON.parse(localStorage.getItem(SKEY)||'{}'))}catch(e){}
 try{const old=JSON.parse(localStorage.getItem('zh-quiz-v1')||'null');
