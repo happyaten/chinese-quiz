@@ -155,12 +155,17 @@ mjx-container{display:inline-block;max-width:100%;overflow-x:auto;overflow-y:hid
 <script id="data-m3en" type="application/json">__M3EN__</script>
 <script id="data-m3sci" type="application/json">__M3SCI__</script>
 <script id="data-m3soc" type="application/json">__M3SOC__</script>
+<script id="data-m4zh" type="application/json">__M4ZH__</script>
+<script id="data-m4ma" type="application/json">__M4MA__</script>
+<script id="data-m4en" type="application/json">__M4EN__</script>
+<script id="data-m4sci" type="application/json">__M4SCI__</script>
+<script id="data-m4soc" type="application/json">__M4SOC__</script>
 <script>
 __PARSER__
 </script>
 <script>
 const BUILTIN=(()=>{const d=JSON.parse(document.getElementById('data').textContent);return {id:'builtin',subj:'國文',name:'國文選擇題 3000 題',source:'朱源葆博士彙編',...d}})();
-const BUILTINS=[BUILTIN,...['data-zh2','data-math','data-ph2','data-gt','data-phys','data-geo','data-ja','data-his','data-civ','data-en','data-enc','data-m2zh','data-m2ma','data-m2er','data-m2el','data-m2sci','data-m2soc','data-m3zh','data-m3en','data-m3sci','data-m3soc'].map(id=>JSON.parse(document.getElementById(id).textContent))];
+const BUILTINS=[BUILTIN,...['data-zh2','data-math','data-ph2','data-gt','data-phys','data-geo','data-ja','data-his','data-civ','data-en','data-enc','data-m2zh','data-m2ma','data-m2er','data-m2el','data-m2sci','data-m2soc','data-m3zh','data-m3en','data-m3sci','data-m3soc','data-m4zh','data-m4ma','data-m4en','data-m4sci','data-m4soc'].map(id=>JSON.parse(document.getElementById(id).textContent))];
 const BKEY='quiz-banks-v1', SKEY='quiz-state-v2';
 let banks=[];
 try{banks=JSON.parse(localStorage.getItem(BKEY)||'[]')}catch(e){}
