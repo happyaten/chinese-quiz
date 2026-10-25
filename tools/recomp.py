@@ -1,4 +1,6 @@
 import json,re,io,base64,sys
+import os
+W=int(os.environ.get("W","720"));Q=int(os.environ.get("Q","55"));L=int(os.environ.get("L","32"))
 from PIL import Image
 def enc(src):
     mt,b=src.split(',',1)
@@ -11,13 +13,13 @@ def enc(src):
         r,g,bb=rgb.split()
         if max(ImageChops.difference(r,g).getextrema()[1],ImageChops.difference(g,bb).getextrema()[1])<24: im=rgb.convert('L')
         else: im=rgb
-    if im.size[0]>900: im=im.resize((900,int(im.size[1]*900/im.size[0])),Image.LANCZOS)
+    if im.size[0]>W: im=im.resize((W,int(im.size[1]*W/im.size[0])),Image.LANCZOS)
     outs=[]
     p=io.BytesIO(); im.save(p,'PNG',optimize=True); outs.append(('png',p.getvalue()))
     if im.mode=='L':
-        q=im.quantize(16) if False else im.point(lambda v:min(255,(v//16)*17))
+        q=im.quantize(16) if False else im.point(lambda v:255 if v>=256-L else (v//L)*L+L//2)
         p=io.BytesIO(); q.save(p,'PNG',optimize=True); outs.append(('png',p.getvalue()))
-    j=io.BytesIO(); im.save(j,'JPEG',quality=70,optimize=True); outs.append(('jpeg',j.getvalue()))
+    j=io.BytesIO(); im.save(j,'JPEG',quality=Q,optimize=True); outs.append(('jpeg',j.getvalue()))
     m,d=min(outs,key=lambda x:len(x[1]))
     new='data:image/%s;base64,'%m+base64.b64encode(d).decode()
     return new if len(new)<len(src) else src
