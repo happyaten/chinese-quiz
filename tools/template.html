@@ -178,12 +178,17 @@ mjx-container{display:inline-block;max-width:100%;overflow-x:auto;overflow-y:hid
 <script id="data-m7el" type="application/json">__M7EL__</script>
 <script id="data-m7sci" type="application/json">__M7SCI__</script>
 <script id="data-m7soc" type="application/json">__M7SOC__</script>
+<script id="data-m8zh" type="application/json">__M8ZH__</script>
+<script id="data-m8ma" type="application/json">__M8MA__</script>
+<script id="data-m8en" type="application/json">__M8EN__</script>
+<script id="data-m8sci" type="application/json">__M8SCI__</script>
+<script id="data-m8soc" type="application/json">__M8SOC__</script>
 <script>
 __PARSER__
 </script>
 <script>
 const BUILTIN=(()=>{const d=JSON.parse(document.getElementById('data').textContent);return {id:'builtin',subj:'國文',name:'國文選擇題 3000 題',source:'朱源葆博士彙編',...d}})();
-const BUILTINS=[BUILTIN,...['data-zh2','data-math','data-ph2','data-gt','data-phys','data-geo','data-ja','data-his','data-civ','data-en','data-enc','data-m2zh','data-m2ma','data-m2er','data-m2el','data-m2sci','data-m2soc','data-m3zh','data-m3en','data-m3sci','data-m3soc','data-m4zh','data-m4ma','data-m4en','data-m4sci','data-m4soc','data-m5zh','data-m5ma','data-m5en','data-m5el','data-m5sci','data-m5soc','data-m6zh','data-m6ma','data-m6en','data-m6el','data-m6sci','data-m6soc','data-m7zh','data-m7ma','data-m7en','data-m7el','data-m7sci','data-m7soc'].map(id=>JSON.parse(document.getElementById(id).textContent))];
+const BUILTINS=[BUILTIN,...['data-zh2','data-math','data-ph2','data-gt','data-phys','data-geo','data-ja','data-his','data-civ','data-en','data-enc','data-m2zh','data-m2ma','data-m2er','data-m2el','data-m2sci','data-m2soc','data-m3zh','data-m3en','data-m3sci','data-m3soc','data-m4zh','data-m4ma','data-m4en','data-m4sci','data-m4soc','data-m5zh','data-m5ma','data-m5en','data-m5el','data-m5sci','data-m5soc','data-m6zh','data-m6ma','data-m6en','data-m6el','data-m6sci','data-m6soc','data-m7zh','data-m7ma','data-m7en','data-m7el','data-m7sci','data-m7soc','data-m8zh','data-m8ma','data-m8en','data-m8sci','data-m8soc'].map(id=>JSON.parse(document.getElementById(id).textContent))];
 const BKEY='quiz-banks-v1', SKEY='quiz-state-v2';
 let banks=[];
 try{banks=JSON.parse(localStorage.getItem(BKEY)||'[]')}catch(e){}
