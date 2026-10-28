@@ -11,7 +11,7 @@ def cut(m):
     if sid=='data':
         e={'id':'builtin','subj':'國文','name':'國文選擇題 3000 題','source':'朱源葆博士彙編'}
     else:
-        d=json.loads(body); e={k:d[k] for k in ('id','subj','name','source') if k in d}
+        d=json.loads(body); e={k:d[k] for k in ('id','subj','stage','name','source') if k in d}
     f='banks/%s.json'%sid
     open(OUT+'/'+f,'w').write(body)
     e['file']=f; man.append(e)
@@ -26,7 +26,7 @@ const BUILTIN=BUILTINS[0];
 function loadBank(b){
   if(b.questions) return Promise.resolve(b);
   if(!b._p) b._p=fetch(b.file).then(r=>{if(!r.ok) throw new Error(r.status);return r.json()})
-    .then(d=>{['id','subj','name','source'].forEach(k=>delete d[k]);Object.assign(b,d);return b})
+    .then(d=>{['id','subj','stage','name','source'].forEach(k=>delete d[k]);Object.assign(b,d);return b})
     .catch(e=>{b._p=null;throw e});
   return b._p;
 }'''%mj+page[b:]
