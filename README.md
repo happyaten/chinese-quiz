@@ -75,5 +75,5 @@
 - `tools/mock113-hl/`：113 會考模擬二模翰林版的逐題資料與附圖框（原卷為掃描檔，逐頁人工輸入），`mkm9.py <科目>` 產生 `tools/m9*.json`。
 - `tools/elem5/`：國小五上國語、數學、自然的逐題資料（`zh/`、`ma/`、`sci/` 的 `d.py`，`ch` 為選擇題、`tf` 為是非題、`cd` 為看答案卡），`mke5.py <資料夾> <輸出>` 產生 `tools/e5*.json`（需要原卷 200dpi 頁面圖檔才能裁附圖）。
 - `tools/elem5/b_*/`：國小五下的自編題（國語康軒／翰林、自然南一／康軒／翰林、社會南一／翰林／教師手冊），依重點整理和教師手冊出題，不是原卷題目；題庫名稱都標「重點自編」，產生 `tools/e5b_*.json`。
-- `tools/g8/`：114上國二（八上）各版本評量卷，逐回手抄自教用版（答案與解析取自邊欄）。`quads.py <pdf> <資料夾>` 把掃描檔切成四格方便閱讀；`zh_kh_a/`、`zh_kh_b/`、`zh_kh_c/` 的 `d.py` 為康軒國文 A、B、C卷第1～16回（成語填空題略過），用 `elem5/mke5.py` 產生 `tools/g8zhkha.json`、`tools/g8zhkhb.json`、`tools/g8zhkhc.json`（B卷有三題附圖，需原卷頁面圖檔）。
+- `tools/g8/`：114上國二（八上）各版本評量卷，逐回手抄自教用版（答案與解析取自邊欄）。`quads.py <pdf> <資料夾>` 把掃描檔切成四格方便閱讀；`zh_kh_a/`、`zh_kh_b/`、`zh_kh_c/` 的 `d.py` 為康軒國文 A、B、C卷第1～16回，`zh_hl_a/` 為翰林國文 A卷第1～16回（成語填空題略過），用 `elem5/mke5.py` 產生 `tools/g8zhkha.json`、`tools/g8zhkhb.json`、`tools/g8zhkhc.json`、`tools/g8zhhla.json`（有附圖的題目需原卷頁面圖檔）。
 - `tools/recomp.py`：把題庫 JSON 內嵌的附圖重新壓縮，讓整個頁面維持在 16MB 以下。
