@@ -50,13 +50,13 @@
 
 ## 使用方式
 
-直接用瀏覽器開啟 `index.html` 即可。開啟 GitHub Pages（Settings → Pages → Source 選 Deploy from a branch → `main` / `/ (root)`）後，就能用網址在手機上打開。
+開啟 GitHub Pages（Settings → Pages → Source 選 Deploy from a branch → `main` / `/ (root)`）後，就能用網址在手機上打開。`index.html` 只內嵌題庫目錄，各題庫放在 `banks/*.json`，切換題庫時才讀取，所以要用網址（GitHub Pages 或本機 `python3 -m http.server`）開啟，直接雙擊本機檔案會讀不到題庫。
 
 ## 開發
 
 - `tools/parser.js`：網頁內用來整理題目的程式（匯入功能也是用它）。
 - `tools/parse.py`、`tools/build.py`、`tools/template.html`：產生內建題庫用的程式與頁面範本。
-- `tools/build_split.py`：產生拆檔版（`split/index.html` 加 `split/banks/*.json`），頁面只內嵌題庫目錄，切換題庫時才讀取對應的資料檔，用來避開 Artifact 單頁 16MB 的上限。repo 的 `index.html` 仍是單檔版。
+- `tools/build_split.py`：產生拆檔版（`split/index.html` 加 `split/banks/*.json`），頁面只內嵌題庫目錄，切換題庫時才讀取對應的資料檔，用來避開 Artifact 單頁 16MB 的上限。repo 根目錄的 `index.html` 與 `banks/` 就是拆檔版（單檔版超過 GitHub 建議的檔案大小，已改用拆檔版）。
 - `tools/phys.py`、`tools/math/`：理化與數學題庫的題目、解析與附圖。
 - `tools/zh/`：國二二段國文練習卷的解析程式（題目卷＋解析卷）與圖表截圖，產生 `tools/zh2.json`。
 - `tools/ph/`：二段理化練習卷的解析與附圖裁切程式，產生 `tools/ph2.json`。
